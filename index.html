@@ -1546,7 +1546,7 @@
 <script>
   // ── EMAILJS OTP AUTH ──────────────────────────────────────────────────
   const EJ_SERVICE  = 'service_h98usal';
-  const EJ_TEMPLATE = 'template_bcbbf1h';
+  const EJ_TEMPLATE = 'template_q39qsvt';
   const EJ_KEY      = 'OlufycSbBA3HTNQwt';
   emailjs.init(EJ_KEY);
 
@@ -1623,7 +1623,7 @@
   }
 
   // ── SEND OTP ──────────────────────────────────────────────────────────
-  async function sendOTP() {
+  window.sendOTP = async function sendOTP() {
     const email = document.getElementById('auth-email').value.trim();
     showAuthError('email-error', '');
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -1638,11 +1638,7 @@
     const code = generateOTP();
     try {
       const expiryTime = new Date(Date.now() + OTP_TTL * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      await emailjs.send(EJ_SERVICE, EJ_TEMPLATE, {
-        to_email: email,
-        passcode: code,
-        time: expiryTime,
-      });
+      await emailjs.send(EJ_SERVICE, EJ_TEMPLATE, { to_email: email, passcode: code, time: expiryTime });
     } catch(err) {
       setBtnLoading('send-otp-btn', false);
       showAuthError('email-error', 'Failed to send email. Check your EmailJS setup. (' + (err.text || err.message || err) + ')');
@@ -1672,7 +1668,7 @@
   }
 
   // ── VERIFY OTP ────────────────────────────────────────────────────────
-  async function verifyOTP() {
+  window.verifyOTP = async function verifyOTP() {
     const token = [...document.querySelectorAll('.otp-digit')].map(i => i.value).join('');
     if (token.length < 6) { showAuthError('otp-error', 'Please enter all 6 digits.'); return; }
     showAuthError('otp-error', '');
@@ -1716,7 +1712,7 @@
   }
 
   // ── RESEND OTP ────────────────────────────────────────────────────────
-  async function resendOTP() {
+  window.resendOTP = async function resendOTP() {
     const btn = document.getElementById('resend-btn');
     if (btn.disabled) return;
     if (!checkRateLimit()) return;
@@ -1747,7 +1743,7 @@
   }
 
   // ── BACK TO EMAIL ─────────────────────────────────────────────────────
-  function backToEmail() {
+  window.backToEmail = function backToEmail() {
     stopAllTimers();
     document.getElementById('auth-step-otp').style.display    = 'none';
     document.getElementById('auth-step-email').style.display  = 'block';
@@ -1758,13 +1754,13 @@
   }
 
   // ── RATE LIMIT EXIT ───────────────────────────────────────────────────
-  function exitRateLimit() {
+  window.exitRateLimit = function exitRateLimit() {
     document.getElementById('auth-step-ratelimit').style.display = 'none';
     document.getElementById('auth-step-email').style.display     = 'block';
   }
 
   // ── SIGN OUT ──────────────────────────────────────────────────────────
-  function signOut() {
+  window.signOut = function signOut() {
     currentUser = null;
     localStorage.removeItem(SESSION_KEY);
     document.getElementById('app-layout').classList.remove('visible');
@@ -1943,8 +1939,8 @@
     bookmarks = JSON.parse(localStorage.getItem('markd_bookmarks') || '[]');
     tagColorMap = JSON.parse(localStorage.getItem('markd_tagcolors') || '{}');
 
-    // Seed demo data for new users
-    if (!bookmarks.length) {
+    // Seed demo data only once for brand-new users
+    if (!bookmarks.length && !localStorage.getItem('markd_seeded')) {
       const now = Date.now();
       bookmarks = [
         { id: uid(), url: 'https://github.com', title: 'GitHub', desc: 'Where the world builds software.', tags: ['dev','tools'], category: 'Dev', fav: true, created: now - 86400000 * 5 },
@@ -1954,6 +1950,7 @@
         { id: uid(), url: 'https://dribbble.com', title: 'Dribbble', desc: "Discover the world's top designers.", tags: ['design','inspiration'], category: 'Design', fav: false, created: now - 3600000 * 4 },
         { id: uid(), url: 'https://news.ycombinator.com', title: 'Hacker News', desc: 'Social news for hackers.', tags: ['news','tech'], category: 'News', fav: true, created: now - 3600000 },
       ];
+      localStorage.setItem('markd_seeded', '1');
       save();
     }
     renderBookmarks();
