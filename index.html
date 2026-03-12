@@ -1637,9 +1637,11 @@
 
     const code = generateOTP();
     try {
+      const expiryTime = new Date(Date.now() + OTP_TTL * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       await emailjs.send(EJ_SERVICE, EJ_TEMPLATE, {
         to_email: email,
-        otp_code: code,
+        passcode: code,
+        time: expiryTime,
       });
     } catch(err) {
       setBtnLoading('send-otp-btn', false);
@@ -1720,8 +1722,9 @@
     if (!checkRateLimit()) return;
 
     const code = generateOTP();
+    const expiryTime = new Date(Date.now() + OTP_TTL * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     try {
-      await emailjs.send(EJ_SERVICE, EJ_TEMPLATE, { to_email: otpEmail, otp_code: code });
+      await emailjs.send(EJ_SERVICE, EJ_TEMPLATE, { to_email: otpEmail, passcode: code, time: expiryTime });
     } catch(err) {
       showAuthError('otp-error', 'Failed to resend. Please try again.');
       return;
